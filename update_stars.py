@@ -14,10 +14,8 @@ API_VERSION = "2026-03-10"
 
 
 def fetch_page(page: int):
-    url = (
-        f"https://api.github.com/users/{USERNAME}/starred"
-        f"?sort=created&direction=desc&per_page=100&page={page}"
-    )
+    base = "https://api.github.com/user/starred" if TOKEN else f"https://api.github.com/users/{USERNAME}/starred"
+    url = f"{base}?sort=created&direction=desc&per_page=100&page={page}"
     headers = {
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": API_VERSION,
@@ -58,8 +56,8 @@ def main():
     if not repos:
         print(
             "No starred repositories were returned. "
-            "If your GitHub profile is private, create a fine-grained PAT with "
-            "Starring: read and save it as the repository secret STAR_TOKEN.",
+            "Create a fine-grained PAT with Starring: read and save it as "
+            "the repository secret STAR_TOKEN.",
             file=sys.stderr,
         )
         return 2
@@ -76,7 +74,7 @@ def main():
     lines = [
         "# GitHub Stars",
         "",
-        f"> 自动同步 [{USERNAME}](https://github.com/{USERNAME}) 的公开 GitHub Stars，并按仓库 Topic 分类。",
+        f"> 自动同步 [{USERNAME}](https://github.com/{USERNAME}) 的 GitHub Stars，并按仓库 Topic 分类。",
         "",
         f"共 **{len(repos)}** 个项目 · 最后更新：{now}",
         "",
