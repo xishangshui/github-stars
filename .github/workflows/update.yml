@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - '.github/workflows/update.yml'
+      - 'update_stars.py'
   schedule:
     - cron: '0 */6 * * *'
 
@@ -23,21 +24,19 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install starred
-        run: pip install starred
-
-      - name: Update README by topic
+      - name: Generate README
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          USERNAME: ${{ github.repository_owner }}
-          REPOSITORY: ${{ github.event.repository.name }}
+          STAR_TOKEN: ${{ secrets.STAR_TOKEN }}
+        run: python update_stars.py
+
+      - name: Commit changes
         run: |
-          starred \
-            --username "$USERNAME" \
-            --repository "$REPOSITORY" \
-            --filename README.md \
-            --topic \
-            --topic_limit 500 \
-            --sort \
-            --token "$GITHUB_TOKEN" \
-            --message "chore: update GitHub Stars by topic"
+          if git diff --quiet README.md; then
+            echo "No changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "chore: update GitHub Stars"
+          git push
