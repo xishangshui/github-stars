@@ -1,0 +1,43 @@
+name: Update GitHub Stars
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/update.yml'
+  schedule:
+    - cron: '0 */6 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  update-stars:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install starred
+        run: pip install starred
+
+      - name: Update README by topic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USERNAME: ${{ github.repository_owner }}
+          REPOSITORY: ${{ github.event.repository.name }}
+        run: |
+          starred \
+            --username "$USERNAME" \
+            --repository "$REPOSITORY" \
+            --filename README.md \
+            --topic \
+            --topic_limit 500 \
+            --sort \
+            --token "$GITHUB_TOKEN" \
+            --message "chore: update GitHub Stars by topic"
